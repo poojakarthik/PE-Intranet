@@ -12,6 +12,60 @@ include("../auth/restrict.php");
 <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js" type="text/javascript"></script>
 <script src="/js/blockUI.js" type="text/javascript"></script>
 <script>
+
+
+$(document).ready(
+	function(){
+		$(".etickets").click(
+		function( event ) {
+            event.preventDefault();
+        $("#display").html("<iframe src='http://192.168.103.26/otrs/index.pl' width='100%' margin-bottom='40px' height='650px' frameborder='0' allowtransparency='true' marginwidth='0' marginheight='0' style='display: block;margin-bottom: 29px;background: none repeat scroll 0% 0% transparent; top:0; left:0; width: 100%;'></iframe>");
+		 
+        });
+		
+		$(".queueview").click(
+		function( event ) {
+            event.preventDefault();
+        $("#display").html("<iframe src='http://192.168.103.26/otrs/index.pl?Action=AgentTicketQueue' width='100%' margin-bottom='40px' height='650px' frameborder='0' allowtransparency='true' marginwidth='0' marginheight='0' style='display: block;margin-bottom: 29px;background: none repeat scroll 0% 0% transparent; top:0; left:0; width: 100%;'></iframe>");
+        });
+		
+		$(".statusview").click(
+		function( event ) {
+            event.preventDefault();
+        $("#display").html("<iframe src='http://192.168.103.26/otrs/index.pl?Action=AgentTicketStatusView' width='100%' margin-bottom='40px' height='650px' frameborder='0' allowtransparency='true' marginwidth='0' marginheight='0' style='display: block;margin-bottom: 29px;background: none repeat scroll 0% 0% transparent; top:0; left:0; width: 100%;'></iframe>");
+        });
+		
+		$(".escalationview").click(
+		function( event ) {
+            event.preventDefault();
+        $("#display").html("<iframe src='http://192.168.103.26/otrs/index.pl?Action=AgentTicketEscalationView' width='100%' margin-bottom='40px' height='700px' frameborder='0' allowtransparency='true' marginwidth='0' marginheight='0' style='display: block;margin-bottom: 29px;background: none repeat scroll 0% 0% transparent; top:0; left:0; width: 100%;'></iframe>");
+        });
+		
+		$(".phoneticket").click(
+		function( event ) {
+            event.preventDefault();
+        $("#display").html("<iframe src='http://192.168.103.26/otrs/index.pl?Action=AgentTicketPhone' width='100%' margin-bottom='40px' height='700px' frameborder='0' allowtransparency='true' marginwidth='0' marginheight='0' style='display: block;margin-bottom: 29px;background: none repeat scroll 0% 0% transparent; top:0; left:0; width: 100%;'></iframe>");
+        });
+		
+		$(".emailticket").click(
+		function( event ) {
+            event.preventDefault();
+        $("#display").html("<iframe src='http://192.168.103.26/otrs/index.pl?Action=AgentTicketEmail' width='100%' margin-bottom='40px' height='700px' frameborder='0' allowtransparency='true' marginwidth='0' marginheight='0' style='display: block;margin-bottom: 29px;background: none repeat scroll 0% 0% transparent; top:0; left:0; width: 100%;'></iframe>");
+        });
+		
+		$(".ticketsearch").click(
+		function( event ) {
+            event.preventDefault();
+        $("#display").html("<iframe src='http://192.168.103.26/otrs/index.pl?Action=AgentTicketSearch' width='100%' margin-bottom='40px' height='700px' frameborder='0' allowtransparency='true' marginwidth='0' marginheight='0' style='display: block;margin-bottom: 29px;background: none repeat scroll 0% 0% transparent; top:0; left:0; width: 100%;'></iframe>");
+        });
+		
+		$(".pricingtool").click(
+		function( event ) {
+            event.preventDefault();
+        $("#display").html("<iframe src='http://192.168.103.26/pricecheckerintranet/pricecheckerintranet.php' width='100%' margin-bottom='40px' height='700px' frameborder='0' allowtransparency='true' marginwidth='0' marginheight='0' style='display: block;margin-bottom: 29px;background: none repeat scroll 0% 0% transparent; top:0; left:0; width: 100%;'></iframe>");
+        });
+});
+
 function pad(number, length) {
 	var str = '' + number;
 	while (str.length < length) {
@@ -68,6 +122,7 @@ var current_page = "";
 
 function Page_Load(name,page)
 {
+	console.log(page);
 	P_Loading_Start();
 	$( "#display" ).load("/pages/" + page + ".php", function(data, status, xhr){
 		if (status == "error")
@@ -95,8 +150,6 @@ function Page_Load_External(name)
 {
 	if (name == "files") {
 		openWins[1] = window.open("/ajaxplorer","files");
-	} else if (name == "email") {
-		openWins[2] = window.open("/auth/email.php","email");
 	}
 }
 
@@ -153,6 +206,7 @@ function Logout()
             </p></center>
         </div>
 		<div class="cl">&nbsp;</div>
+      
 		<div id="navigation">
 			<ul>
 			    <li>
@@ -189,10 +243,57 @@ function Logout()
                 <li>
 			    	<a onclick="Page_Load_External('files')"><span>File Management</span></a>
 			    </li>
+				<?php
+                $p_flag=true;
+                $rst=$mysqli->query("Select * from `pen`.`default_priviliges` where user='".$ac['user']."'") or die($mysqli->error);
+                if($rst->num_rows==0)
+                {
+					$rst=$mysqli->query("Select * from `pen`.`shared_privilige` where user='".$ac['user']."'") or die($mysqli->error);
+					if($rst->num_rows==0) {
+						$p_flag=false;
+					}
+				}
+					if($p_flag)
+					{
+                ?>
+                <li>
+                	<a onclick="Page_Load('privilege','privilege')" id="menu_privilege"><span>Privileges</span></a>
+				</li>
+				<?php
+				}
+				?>
 			    <li>
-			    	<a onclick="Page_Load_External('email')"><span>E-Mail</span></a>
+			    	<a class="etickets"><span>E-Ticket</span></a>
+                    <ul>
+	   				    <li>
+                            <a class="queueview" >Queue View</a>
+                        </li>
+                         <li>
+                            <a class="statusview">Status View</a>
+                        </li>
+                         <li>
+                            <a class="escalationview">Escalation View</a>
+                        </li>
+                         <li>
+                            <a class="phoneticket">New Phone Ticket</a>
+                        </li>
+                         <li>
+                            <a class="emailticket">New Email Ticket</a>
+                        </li>
+                        <li>
+                            <a class="ticketsearch">Search</a>
+                        </li>
+                    </ul>
 			    </li>
                 
+               <li>
+                	<a id="menu_tools"><span>Tools</span></a>
+                    <ul>
+	   				    <li>
+                            <a class="pricingtool">Price Checker</a>
+                        </li>
+                    </ul>
+                </li> 
                 <li>
 			    	<a onclick="Logout()"><span>Logout</span></a>
 			    </li>
