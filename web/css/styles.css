@@ -139,7 +139,7 @@ h1 {
 	cursor: pointer;
 }
 
-#box form input[type=button], #box form input[type=submit] {
+#box form input[type=button], #box form input[type=submit]{
 	background: url(../images/button.png) no-repeat;
 	border: none;
 	display: block;
