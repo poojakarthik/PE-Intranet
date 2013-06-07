@@ -85,7 +85,7 @@ while($tNow <= $tEnd)
 	if ($booking[date("H:i",$tNow) . ":00"] != "") {
 		echo "<td>Unavailable - " . $booking[date("H:i",$tNow) . ":00"] . "</td>";
 	} else {
-		echo "<td>Available</td>";
+		echo "<td disabled>Available</td>";
 	}
 	if ($booking[date("H:i",$tNow) . ":00"] == "") {
 		echo "<td><button class='book' onclick='Book(\"$time\")' title='Book Room'></button></td>";
