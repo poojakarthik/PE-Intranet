@@ -18,6 +18,10 @@ div#users-contain table tbody tr:hover { background: #eee; }
 	opacity: 0.4;
 	cursor: default;
 }
+.book:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
 </style>
 <script>
 var room = "boardroom";

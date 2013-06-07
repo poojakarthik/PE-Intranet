@@ -26,9 +26,7 @@ include("../auth/restrict_inner.php");
             <div class="cols two-cols">
                 <div class="cl">&nbsp;</div>
               	<div class="col">
-					<div style="width:410px; height:310px; border:2px solid #521f74;">
-                    
-                    </div>
+					<div style="width:410px; height:310px; border:2px solid #521f74;"></div>
                 </div>
               	<div class="col col-last">
 					<div style="width:410px; height:310px; border:2px solid #521f74;"></div>
