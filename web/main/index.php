@@ -190,9 +190,28 @@ function Logout()
 			    	<a onclick="Page_Load_External('files')"><span>File Management</span></a>
 			    </li>
 			    <li>
-			    	<a onclick="Page_Load_External('email')"><span>E-Mail</span></a>
+			    	<a id="menu_eticket" onclick="Page_Load('eticket','eticket')"><span>E-Tickets</span></a>
 			    </li>
-                
+                <?php
+					$p_flag=true;
+					$rst=$mysqli->query("Select * from `pen`.`default_priviliges` where user='".$ac['user']."'") or die($mysqli->error);
+					if($rst->num_rows==0)
+					{
+						$rst=$mysqli->query("Select * from `pen`.`shared_privilige` where user='".$ac['user']."'") or die($mysqli->error);
+						if($rst->num_rows==0){
+							$p_flag=false;
+						}
+					}
+					if($p_flag)
+					{
+						?>
+             	<li>
+			    	<a onclick="Page_Load('privilege','privilege')" id="menu_privilege"><span>Privileges</span></a>
+			    </li>
+                        <?php
+					}
+					
+				?>
                 <li>
 			    	<a onclick="Logout()"><span>Logout</span></a>
 			    </li>

@@ -3,6 +3,22 @@ $mysqli = new mysqli('localhost','pen','18450be');
 
 define('SALT', 'IISp3dwbJu4UuMxWJWSfLrzR');
 
+//SOAP Start
+$uname = "pe_intranet";
+$pword = "18450be";
+$url = "http://192.168.103.26/otrs/intranet_rpc.pl"; # replace with your own otrs url
+
+# initialising soap client
+$soapclient = new SoapClient(null,array('location'  => $url,
+							 'uri'		 => "Core",
+                             'trace'     => 1,
+                             'login'     => $uname,
+                             'password'  => $pword,
+                             'style'     => SOAP_RPC,
+                             'use'       => SOAP_ENCODED));
+
+//SOAP End
+
 function encrypt($text)
 {
 	return trim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, SALT, $text, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND))));
@@ -56,8 +72,29 @@ if ($q->num_rows != 0)
 	
 		// NOW call glueCode!
 		include($glueCode);
-		
-		echo "success";
+		if($soapclient->__call('Dispatch', array($uname, $pword, "AuthObject", "Auth","User", $user, "Pw",decrypt($pass))))
+		{
+			$userlist=$soapclient->__call('Dispatch',array($uname, $pword,'UserObject','GetUserData','User',$user));
+			$values = array_values($userlist);
+			$key_start = 0;
+			$key_end = count($values)-1;
+			
+			// create new asoc array with key & values
+			$queue_array = array();
+			for ($key = $key_start; $key < $key_end; $key++) {
+				$value = $key + 1;
+				$queue_array[$values[$key]] = $values[$value];
+				$key++;
+			}
+			$session_id=$soapclient->__call('Dispatch', array($uname, $pword, "SessionObject", "CreateSessionID","UserLogin", $user, "UserEmail",$queue_array['UserEmail']));
+			//var_dump($session_id);
+			setcookie("otrs_token", $session_id, strtotime("+1 month"), '/');
+			echo "success";
+		}
+		else
+		{
+			echo "Failed to Login to OTRS";
+		}
 	}
 }
 else
@@ -75,11 +112,14 @@ else
 		{
 			$dc = "CN=Users,DC=peteam,DC=com,DC=au";
 			$f = "(sAMAccountName=$user)";
-			$attr = array("displayName","description","title","department","telephonenumber","facsimiletelephonenumber","company","mail","ipPhone","useraccountcontrol","info");
+			$attr = array("displayName","description","title","department","telephonenumber","facsimiletelephonenumber","company","mail","ipPhone","useraccountcontrol","info","manager");
 			$s = ldap_search($ldap,$dc,$f,$attr) or die("<b>Error: </b>Unable to search LDAP server.");
 			$d = ldap_get_entries($ldap,$s);
 			
 			//var_dump($d);
+			$manager=explode("CN=",$d[0]["manager"][0]);
+			$manager[1]=preg_replace('/[^a-zA-Z0-9_ \-()\/%-&]/s', '', $manager[1]);
+			
 			$name = $d[0]["displayname"][0];
 			$department = $d[0]["department"][0];
 			$position = $d[0]["title"][0];
@@ -90,6 +130,8 @@ else
 			$phone_number = $d[0]["telephonenumber"][0];
 			$fax_number = $d[0]["facsimiletelephonenumber"][0];
 			$additional_info=$d[0]["info"][0];
+			
+			$default_privilige= $d[0]["description"][0];
 			
 			$info=explode("~",$additional_info);
 			$staff_id=0;
@@ -142,6 +184,15 @@ else
 			
 			$mysqli->query("INSERT INTO `pen`.`users` (`user`, `pass`, `name`, `department`, `position`, `staff_id`, `payroll_id`, `location`, `email_type`, `email`, `orion_id`, `phone_number`, `extension`, `fax_number`, `p_tag`, `access_card`, `parking_space`, `status`) VALUES ('" . $mysqli->real_escape_string($user) . "', '" . $mysqli->real_escape_string(encrypt($pass)) . "', '" . $mysqli->real_escape_string($name) . "', '" . $mysqli->real_escape_string($department) . "', '" . $mysqli->real_escape_string($position) . "', '" . $mysqli->real_escape_string($staff_id) . "', '" . $mysqli->real_escape_string($payroll_id) . "', '" . $mysqli->real_escape_string($location) . "', '" . $mysqli->real_escape_string($email_type) . "', '" . $mysqli->real_escape_string($email) . "', '" . $mysqli->real_escape_string($orion_id) . "', '" . $mysqli->real_escape_string($phone_number) . "', '" . $mysqli->real_escape_string($extension) . "', '" . $mysqli->real_escape_string($fax_number) . "', '" . $mysqli->real_escape_string($p_tag) . "', '" . $mysqli->real_escape_string($access_card) . "', '" . $mysqli->real_escape_string($parking_space) . "','Enabled') ON DUPLICATE KEY UPDATE `pass` = '" . $mysqli->real_escape_string(encrypt($pass)) . "', `name` = '" . $mysqli->real_escape_string($name) . "', `department` = '" . $mysqli->real_escape_string($department) . "', `position` = '" . $mysqli->real_escape_string($position) . "', staff_id='".$mysqli->real_escape_string($staff_id) . "', payroll_id='" . $mysqli->real_escape_string($payroll_id) . "', location='" . $mysqli->real_escape_string($location) . "', `email_type` = '" . $mysqli->real_escape_string($email_type) . "', `email` = '" . $mysqli->real_escape_string($email) . "',orion_id='" . $mysqli->real_escape_string($orion_id) . "', phone_number='" . $mysqli->real_escape_string($phone_number) . "', `extension` = '" . $mysqli->real_escape_string($extension) . "', fax_number='" . $mysqli->real_escape_string($fax_number) . "', p_tag ='" . $mysqli->real_escape_string($p_tag) . "', access_card='" . $mysqli->real_escape_string($access_card) . "', parking_space ='" . $mysqli->real_escape_string($parking_space) . "', `status` = 'Enabled'") or die($mysqli->error);
 			
+			if($default_privilige!="")
+			{
+				$mysqli->query("INSERT INTO `pen`.`default_priviliges` (`user`, `privilige_group`) VALUES ('" . $mysqli->real_escape_string($user) . "', '" . $mysqli->real_escape_string($default_privilige) . "') ON DUPLICATE KEY UPDATE `privilige_group` = '" . $mysqli->real_escape_string($default_privilige) . "'") or die($mysqli->error);
+			}
+			
+			if($manager[1]!="")
+			{
+				$mysqli->query("INSERT INTO `pen`.`reports_to` (`user`, `manager`) VALUES ('" . $mysqli->real_escape_string($user) . "', '" . $mysqli->real_escape_string($manager[1]) . "') ON DUPLICATE KEY UPDATE `manager` = '" . $mysqli->real_escape_string($manager[1]) . "'") or die($mysqli->error);
+			}
 			$mysqli->query("INSERT INTO `pen`.`ajxp_users` (`login`, `password`) VALUES ('" . $mysqli->real_escape_string($user) . "', '" . $mysqli->real_escape_string(md5($pass)) . "')") or die($mysqli->error);
 			
 			$token = hash('whirlpool', $user . rand());
@@ -167,6 +218,7 @@ else
 			include($glueCode);
 			
 			echo "success";
+			
 		}
 		else
 		{

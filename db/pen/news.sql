@@ -1,0 +1,19 @@
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+
+
+CREATE TABLE `news` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `subject` varchar(512) NOT NULL,
+  `post` text NOT NULL,
+  `poster` varchar(64) NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `broadcast` varchar(1) NOT NULL,
+  `department` varchar(128) NOT NULL,
+  `users` varchar(512) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
